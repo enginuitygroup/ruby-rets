@@ -86,6 +86,53 @@ module RETS
       end
 
       ##
+      # Emails a Realtor
+      #
+      # @param [Hash] args
+      # @option args [String] :host The hostname of the API
+      # @option args [String] :sender_name Name of the sender
+      # @option args [String] :sender_email The sender's email address
+      # @option args [String] :message The message from the sender
+      # @option args [Integer] :individual_id The ID of the REALTOR
+      # @option args [Integer, Optional] :listing_id The ID of the listing
+      # @option args [Integer, Optional] :sender_area_code the 3-digit area code of the sender's phone number
+      # @option args [Integer, Optional] :sender_phone_number the 7-digit phone number of the sender
+      # @option args [String, Optional] :culture the language of the results
+      #
+      # @raise [RETS::CapabilityNotFound]
+      # @raise [RETS::APIError]
+      # @raise [RETS::HTTPError]
+      def email_realtor(args)
+        # c = RETS::Client.login(url: 'https://data-qa.crea.ca/Login.svc/Login', username: 'CXLHfDVrziCfvwgCuL8nUahC', password: 'mFqMsCSPdnb5WO1gpEEtDCHH')
+        # c.email_realtor(host: 'https://data-qa.crea.ca', sender_name: 'test', sender_email: 'test@test.com', message: 'hello!', individual_id: 270590)
+        req = {
+          :url => URI.parse("#{args[:host]}/Email.svc/EmailRealtor"),
+          :params => {
+            :SenderName         => args[:sender_name],
+            :SenderEmailAddress => args[:sender_email],
+            :Message            => args[:message],
+            :IndividualId       => args[:individual_id],
+            :Culture            => args[:culture] || 'en-CA'
+          }
+        }
+
+        req[:params][:ListingId] = args[:listing_id] unless args[:listing_id].nil?
+        req[:params][:SenderPhoneAreaCode] = args[:sender_area_code] unless args[:sender_area_code].nil?
+        req[:params][:SenderPhoneNumber] = args[:sender_phone_number] unless args[:sender_phone_number].nil?
+
+        @http.request(req) do |response|
+          @rets_data = {}
+          reply_xml = Nokogiri::XML(response.read_body).xpath('//Reply').children.each do |child|
+            if child.name == 'ReplyCode'
+              @rets_data[:code] = child.text
+            elsif child.name == 'ReplyText'
+              @rets_data[:text] = child.text
+            end
+          end
+        end
+      end
+
+      ##
       # Requests an object from the RETS server.
       #
       # @param [Hash] args
