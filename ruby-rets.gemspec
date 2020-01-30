@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = ">= 1.3.6"
   s.rubyforge_project         = "ruby-rets"
 
-  s.add_runtime_dependency "nokogiri", "~>1.8.0"
+  s.add_runtime_dependency "nokogiri", ">=1.8.0"
 
   s.add_development_dependency "rspec", "~>2.8.0"
   s.add_development_dependency "guard-rspec", "~>0.6.0"
